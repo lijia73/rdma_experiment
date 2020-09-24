@@ -1,23 +1,25 @@
 #include "common.h"
 #include <pthread.h>
 
-// struct config_t config = {
-//     NULL,
-//     "10.10.10.1",
-//     19875,
-//     1,
-//     NULL,
-//     2
-// };
+#define here printf("1\n");
 
 struct config_t config = {
     NULL,
-    NULL, 
+    "10.10.10.2",
     19875,
     1,
-    NULL, 
+    NULL,
     2
 };
+
+// struct config_t config = {
+//     NULL,
+//     NULL, 
+//     19875,
+//     1,
+//     NULL, 
+//     2
+// };
 
 struct thread_arg {
     struct resources *res;
@@ -53,14 +55,17 @@ void main() {
     char tempChar;
     unsigned long **time_spents;
     pthread_t *ths;
+    char syndata;
     
     time_spents = (unsigned long **)malloc(config.num_qp * sizeof(unsigned long *));
     ths = (pthread_t *)malloc(config.num_qp * sizeof(pthread_t));
 
     resources_init(&res);
+    here
     resources_create(&res);
     connect_qp(&res);
 
+    here
     for (int i = 0; i < config.num_qp; i++) {
         int ret;
         struct thread_arg targ = {
@@ -79,5 +84,6 @@ void main() {
     for (int i = 0; i < config.num_qp; i++) {
         printf("%d: %lu\n", i, *time_spents[i]);
     }
+    sock_sync_data(res.sock, 1, 'A', &syndata);
     return;
 }
