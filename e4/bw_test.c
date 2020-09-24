@@ -43,7 +43,7 @@ void * thread_run(void *arg) {
             poll_completion(res, qpid);
             
             gettimeofday(&cur_time, NULL);
-            et = (cur_time.tv_usec * 1000) + (cur_time.tv_usec / 1000);
+            et = (cur_time.tv_sec * 1000) + (cur_time.tv_usec / 1000);
             spent += (et - st);
         }
     }
