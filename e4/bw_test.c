@@ -34,13 +34,16 @@ void * thread_run(void *arg) {
     struct timeval cur_time;
     printf("Thread %d created\n", qpid);
     if (config.server_name) {
-        for (int i = 0; i < 10; i ++) {
+        for (int i = 0; i < 1000; i ++) {
             printf("RDMA write\n");
             gettimeofday(&cur_time, NULL);
             st = (cur_time.tv_sec * 1000) + (cur_time.tv_usec / 1000);
-            post_send(res, IBV_WR_RDMA_WRITE, qpid);
+            post_send(res, IBV_WR_RDMA_READ, qpid);
             
             poll_completion(res, qpid);
+            if (i == 0) {
+                printf("%d first package\n", qpid);
+            }
             
             gettimeofday(&cur_time, NULL);
             et = (cur_time.tv_sec * 1000) + (cur_time.tv_usec / 1000);

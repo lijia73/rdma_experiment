@@ -80,20 +80,19 @@ int resources_create(struct resources *res)
 	int cq_size = 0;
 	int num_devices;
 	int rc = 0;
-	/* if client side */
-	if (config.server_name)
-	{
+
+	if (config.server_name) {
+		// create client side socket
 		res->sock = sock_connect(config.server_name, config.tcp_port);
-		if (res->sock < 0)
-		{
+		if (res->sock < 0) {
 			fprintf(stderr, "failed to establish TCP connection to server %s, port %d\n",
 					config.server_name, config.tcp_port);
 			rc = -1;
 			goto resources_create_exit;
 		}
 	}
-	else
-	{
+	else {
+		// create server side socket
 		fprintf(stdout, "waiting on port %d for TCP connection\n", config.tcp_port);
 		res->sock = sock_connect(NULL, config.tcp_port);
 		if (res->sock < 0)
@@ -106,71 +105,62 @@ int resources_create(struct resources *res)
 	}
 	fprintf(stdout, "TCP connection was established\n");
 	fprintf(stdout, "searching for IB devices in host\n");
-	/* get device names in the system */
+	// get device list
 	dev_list = ibv_get_device_list(&num_devices);
-	if (!dev_list)
-	{
+	if (!dev_list) {
 		fprintf(stderr, "failed to get IB devices list\n");
 		rc = 1;
 		goto resources_create_exit;
 	}
-	/* if there isn't any IB device in host */
-	if (!num_devices)
-	{
+	if (!num_devices) {
 		fprintf(stderr, "found %d device(s)\n", num_devices);
 		rc = 1;
 		goto resources_create_exit;
 	}
 	fprintf(stdout, "found %d device(s)\n", num_devices);
-	/* search for the specific device we want to work with */
-	for (i = 0; i < num_devices; i++)
-	{
-		if (!config.dev_name)
-		{
+	for (i = 0; i < num_devices; i++) {
+		if (!config.dev_name) {
 			config.dev_name = strdup(ibv_get_device_name(dev_list[i]));
 			fprintf(stdout, "device not specified, using first one found: %s\n", config.dev_name);
 		}
-		if (!strcmp(ibv_get_device_name(dev_list[i]), config.dev_name))
-		{
+		if (!strcmp(ibv_get_device_name(dev_list[i]), config.dev_name)) {
 			ib_dev = dev_list[i];
 			break;
 		}
 	}
-	/* if the device wasn't found in host */
-	if (!ib_dev)
-	{
+	if (!ib_dev) {
+		// no device found
 		fprintf(stderr, "IB device %s wasn't found\n", config.dev_name);
 		rc = 1;
 		goto resources_create_exit;
 	}
-	/* get device handle */
+	// open device
 	res->ib_ctx = ibv_open_device(ib_dev);
-	if (!res->ib_ctx)
-	{
+	if (!res->ib_ctx) {
 		fprintf(stderr, "failed to open device %s\n", config.dev_name);
 		rc = 1;
 		goto resources_create_exit;
 	}
-	/* We are now done with device list, free it */
 	ibv_free_device_list(dev_list);
 	dev_list = NULL;
 	ib_dev = NULL;
-	/* query port properties */
-	if (ibv_query_port(res->ib_ctx, config.ib_port, &res->port_attr))
-	{
+	
+	// query port property
+	if (ibv_query_port(res->ib_ctx, config.ib_port, &res->port_attr)) {
 		fprintf(stderr, "ibv_query_port on port %u failed\n", config.ib_port);
 		rc = 1;
 		goto resources_create_exit;
 	}
-	/* allocate Protection Domain */
+
+	// allocate pd
 	res->pd = ibv_alloc_pd(res->ib_ctx);
-	if (!res->pd)
-	{
+	if (!res->pd) {
 		fprintf(stderr, "ibv_alloc_pd failed\n");
 		rc = 1;
 		goto resources_create_exit;
 	}
-	/* each side will send only one WR, so Completion Queue with 1 entry is enough */
+
+	// create cq
     cq_size = 1;
     res->cq = (struct ibv_cq **)malloc(config.num_qp * sizeof(struct ibv_cq *));
     for (int i = 0; i < config.num_qp; i++) {
@@ -182,25 +172,18 @@ int resources_create(struct resources *res)
         }
     }
 	
-	/* allocate the memory buffer that will hold the data */
+	// allocate buffer
 	res->buf = (char **)malloc(config.num_qp * sizeof(char *));
     for (int i = 0; i < config.num_qp; i++) {
         res->buf[i] = (char *)malloc(BUF_SIZE);
         if (!res->buf[i]) {
-            fprintf(stderr, "failed to malloc %Zu bytes to memory buffer\n", size);
+            fprintf(stderr, "failed to malloc %Zu bytes to memory buffer\n", BUF_SIZE);
             rc = 1;
             goto resources_create_exit;
         }
         memset(res->buf[i], 0, BUF_SIZE);
     }
-	/* only in the server side put the message in the memory buffer */
-	// if (!config.server_name) {
-	// 	strcpy(res->buf, "hello from server\n");
-	// 	fprintf(stdout, "going to send the message: '%s'\n", res->buf);
-	// }
-	// else
-	// 	memset(res->buf, 0, size);
-	/* register the memory buffer */
+
 	mr_flags = IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ | IBV_ACCESS_REMOTE_WRITE;
     res->mr = (struct ibv_mr **)malloc(config.num_qp * sizeof(struct ibv_mr *));
     for (int i = 0; i < config.num_qp; i++) {
@@ -210,7 +193,7 @@ int resources_create(struct resources *res)
             rc = 1;
             goto resources_create_exit;
         }
-        fprintf(stdout, "MR was registered with addr=%p, lkey=0x%x, rkey=0x%x, flags=0x%x\n",
+        fprintf(stdout, "MR addr=%p, lkey=0x%x, rkey=0x%x, flags=0x%x\n",
 			res->buf[i], res->mr[i]->lkey, res->mr[i]->rkey, mr_flags);
     }
 	
@@ -232,7 +215,7 @@ int resources_create(struct resources *res)
             rc = 1;
             goto resources_create_exit;
         }
-        fprintf(stdout, "QP was created, QP number=0x%x\n", res->qp[i]->qp_num);
+        fprintf(stdout, "QP number=0x%x\n", res->qp[i]->qp_num);
     }
 
 	res->remote_props = (struct cm_con_data_t **)malloc(config.num_qp * sizeof(struct cm_con_data_t *));
