@@ -3,23 +3,23 @@
 
 #define here printf("1\n");
 
-struct config_t config = {
-    NULL,
-    "10.10.10.2",
-    19875,
-    1,
-    NULL,
-    2
-};
-
 // struct config_t config = {
 //     NULL,
-//     NULL, 
+//     "10.10.10.2",
 //     19875,
 //     1,
-//     NULL, 
+//     NULL,
 //     2
 // };
+
+struct config_t config = {
+    NULL,
+    NULL, 
+    19875,
+    1,
+    NULL, 
+    2
+};
 
 struct thread_arg {
     struct resources *res;
@@ -84,6 +84,6 @@ void main() {
     for (int i = 0; i < config.num_qp; i++) {
         printf("%d: %lu\n", i, *time_spents[i]);
     }
-    sock_sync_data(res.sock, 1, 'A', &syndata);
+    sock_sync_data(res.sock, 1, "A", &syndata);
     return;
 }
