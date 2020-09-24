@@ -15,7 +15,9 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-#define BUF_SIZE 65536
+#define BUF_SIZE 128
+
+#define here printf("1\n");
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 static inline uint64_t htonll(uint64_t x) { return bswap_64(x); }

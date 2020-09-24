@@ -1,7 +1,6 @@
 #include "common.h"
 #include <pthread.h>
 
-#define here printf("1\n");
 
 struct config_t config = {
     NULL,
@@ -39,10 +38,10 @@ void * thread_run(void *arg) {
             printf("RDMA write\n");
             gettimeofday(&cur_time, NULL);
             st = (cur_time.tv_sec * 1000) + (cur_time.tv_usec / 1000);
-            here
             post_send(res, IBV_WR_RDMA_WRITE, qpid);
+            
             poll_completion(res, qpid);
-            here
+            
             gettimeofday(&cur_time, NULL);
             et = (cur_time.tv_usec * 1000) + (cur_time.tv_usec / 1000);
             spent += (et - st);
