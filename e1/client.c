@@ -23,6 +23,9 @@ void main() {
         fprintf(stdout, "Failed to post sencond send\n");
         return;
     }
+    if (poll_completion(&res)) {
+        return;
+    }
     if (sock_sync_data(res.sock, 1, "R", &tempChar)) {
         return;
     }

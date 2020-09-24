@@ -191,7 +191,7 @@ int resources_create(struct resources *res)
             rc = 1;
             goto resources_create_exit;
         }
-        memset(res->buf[0], 0, BUF_SIZE);
+        memset(res->buf[i], 0, BUF_SIZE);
     }
 	/* only in the server side put the message in the memory buffer */
 	// if (!config.server_name) {
@@ -204,7 +204,7 @@ int resources_create(struct resources *res)
 	mr_flags = IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ | IBV_ACCESS_REMOTE_WRITE;
     res->mr = (struct ibv_mr **)malloc(config.num_qp * sizeof(struct ibv_mr *));
     for (int i = 0; i < config.num_qp; i++) {
-        res->mr[i] = ibv_reg_mr(res->pd, res->buf, BUF_SIZE, mr_flags);
+        res->mr[i] = ibv_reg_mr(res->pd, res->buf[i], BUF_SIZE, mr_flags);
         if (!res->mr[i]) {
             fprintf(stderr, "ibv_reg_mr failed with mr_flages=0x%x\n", mr_flags);
             rc = 1;
