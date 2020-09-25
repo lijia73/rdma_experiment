@@ -173,28 +173,54 @@ int resources_create(struct resources *res)
     }
 	
 	// allocate buffer
-	res->buf = (char **)malloc(config.num_qp * sizeof(char *));
+	res->buf = (char **)malloc(config.num_qp * config.use_single_mr * sizeof(char *));
     for (int i = 0; i < config.num_qp; i++) {
-        res->buf[i] = (char *)malloc(BUF_SIZE);
-        if (!res->buf[i]) {
-            fprintf(stderr, "failed to malloc %Zu bytes to memory buffer\n", BUF_SIZE);
-            rc = 1;
-            goto resources_create_exit;
-        }
-        memset(res->buf[i], 0, BUF_SIZE);
+		if (!config.use_single_mr || (config.use_single_mr && i == 0)) {
+			// allocating the first buffer if use single mr or allocating buffer not use single mr
+			res->buf[i] = (char *)malloc(BUF_SIZE);
+        	if (!res->buf[i]) {
+            	fprintf(stderr, "failed to malloc %Zu bytes to memory buffer\n", BUF_SIZE);
+            	rc = 1;
+            	goto resources_create_exit;
+        	}
+			memset(res->buf[i], 0, BUF_SIZE);
+		}
+		if (config.use_single_mr && i > 0) {
+			break;
+		}
+        // res->buf[i] = (char *)malloc(BUF_SIZE);
+        // if (!res->buf[i]) {
+        //     fprintf(stderr, "failed to malloc %Zu bytes to memory buffer\n", BUF_SIZE);
+        //     rc = 1;
+        //     goto resources_create_exit;
+        // }
+        // memset(res->buf[i], 0, BUF_SIZE);
     }
 
 	mr_flags = IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ | IBV_ACCESS_REMOTE_WRITE;
-    res->mr = (struct ibv_mr **)malloc(config.num_qp * sizeof(struct ibv_mr *));
+    res->mr = (struct ibv_mr **)malloc(config.num_qp * config.use_single_mr * sizeof(struct ibv_mr *));
     for (int i = 0; i < config.num_qp; i++) {
-        res->mr[i] = ibv_reg_mr(res->pd, res->buf[i], BUF_SIZE, mr_flags);
-        if (!res->mr[i]) {
-            fprintf(stderr, "ibv_reg_mr failed with mr_flages=0x%x\n", mr_flags);
-            rc = 1;
-            goto resources_create_exit;
-        }
-        fprintf(stdout, "MR addr=%p, lkey=0x%x, rkey=0x%x, flags=0x%x\n",
-			res->buf[i], res->mr[i]->lkey, res->mr[i]->rkey, mr_flags);
+		if (!config.use_single_mr || (config.use_single_mr && i == 0)) {
+			res->mr[i] = ibv_reg_mr(res->pd, res->buf[i], BUF_SIZE, mr_flags);
+        	if (!res->mr[i]) {
+            	fprintf(stderr, "ibv_reg_mr failed with mr_flages=0x%x\n", mr_flags);
+            	rc = 1;
+            	goto resources_create_exit;
+        	}
+        	fprintf(stdout, "MR addr=%p, lkey=0x%x, rkey=0x%x, flags=0x%x\n",
+					res->buf[i], res->mr[i]->lkey, res->mr[i]->rkey, mr_flags);
+		}
+		if (config.use_single_mr && i > 0) {
+			break;
+		}
+        // res->mr[i] = ibv_reg_mr(res->pd, res->buf[i], BUF_SIZE, mr_flags);
+        // if (!res->mr[i]) {
+        //     fprintf(stderr, "ibv_reg_mr failed with mr_flages=0x%x\n", mr_flags);
+        //     rc = 1;
+        //     goto resources_create_exit;
+        // }
+        // fprintf(stdout, "MR addr=%p, lkey=0x%x, rkey=0x%x, flags=0x%x\n",
+		// 	res->buf[i], res->mr[i]->lkey, res->mr[i]->rkey, mr_flags);
     }
 	
 	/* create the Queue Pair */
@@ -483,9 +509,9 @@ int post_send(struct resources *res, int opcode, int qpid)
 	int rc;
 	/* prepare the scatter/gather entry */
 	memset(&sge, 0, sizeof(sge));
-	sge.addr = (uintptr_t)res->buf[qpid];
+	sge.addr = (uintptr_t)res->buf[qpid * config.use_single_mr];
 	sge.length = BUF_SIZE;
-	sge.lkey = res->mr[qpid]->lkey;
+	sge.lkey = res->mr[qpid * config.use_single_mr]->lkey;
 	/* prepare the send work request */
 	memset(&sr, 0, sizeof(sr));
 	sr.next = NULL;

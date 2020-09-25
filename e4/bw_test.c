@@ -8,7 +8,8 @@ struct config_t config = {
     19875,
     1,
     -1,
-    2
+    500,
+    1
 };
 
 // struct config_t config = {
@@ -17,7 +18,8 @@ struct config_t config = {
 //     19875,
 //     1,
 //     -1, 
-//     2
+//     2,
+//     1
 // };
 
 struct thread_arg {

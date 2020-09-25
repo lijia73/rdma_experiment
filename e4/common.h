@@ -15,7 +15,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-#define BUF_SIZE 65536
+#define BUF_SIZE 256
 
 #define here printf("1\n");
 
@@ -37,6 +37,7 @@ struct config_t
 	int ib_port;		  /* local IB port to work with */
 	int gid_idx;		  /* gid index to use */
     int num_qp;         // number of qp to create
+	int use_single_mr;
 };
 
 struct cm_con_data_t
