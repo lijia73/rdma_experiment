@@ -452,8 +452,13 @@ int connect_qp(struct resources *res)
 	for (int i = 0; i < config.num_qp; i++) {
 		remote_con_data = (struct cm_con_data_t *)malloc(sizeof(struct cm_con_data_t));
 		memset(remote_con_data, 0, sizeof(remote_con_data));
-		local_con_data.addr = htonll((uintptr_t)res->buf[i]);
-		local_con_data.rkey = htonl(res->mr[i]->rkey);
+		if (config.use_single_mr) {
+			local_con_data.addr = htonll((uintptr_t)res->buf[0]);
+			local_con_data.rkey = htonl(res->mr[0]->rkey);
+		} else {
+			local_con_data.addr = htonll((uintptr_t)res->buf[i]);
+			local_con_data.rkey = htonl(res->mr[i]->rkey);
+		}
 		local_con_data.qp_num = htonl(res->qp[i]->qp_num);
 		local_con_data.lid = htons(res->port_attr.lid);
 		memcpy(local_con_data.gid, &my_gid, 16);
