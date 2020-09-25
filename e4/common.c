@@ -173,7 +173,11 @@ int resources_create(struct resources *res)
     }
 	
 	// allocate buffer
-	res->buf = (char **)malloc(config.num_qp * config.use_single_mr * sizeof(char *));
+	if (config.use_single_mr) {
+		res->buf = (char **)malloc(sizeof(char *));
+	} else {
+		res->buf = (char **)malloc(config.num_qp * sizeof(char *));
+	}
     for (int i = 0; i < config.num_qp; i++) {
 		if (!config.use_single_mr || (config.use_single_mr && i == 0)) {
 			// allocating the first buffer if use single mr or allocating buffer not use single mr
@@ -198,7 +202,11 @@ int resources_create(struct resources *res)
     }
 
 	mr_flags = IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ | IBV_ACCESS_REMOTE_WRITE;
-    res->mr = (struct ibv_mr **)malloc(config.num_qp * config.use_single_mr * sizeof(struct ibv_mr *));
+	if (config.use_single_mr) {
+		res->mr = (struct ibv_mr **)malloc(sizeof(struct ibv_mr *));
+	} else {
+		res->mr = (struct ibv_mr **)malloc(config.num_qp * sizeof(struct ibv_mr *));
+	}
     for (int i = 0; i < config.num_qp; i++) {
 		if (!config.use_single_mr || (config.use_single_mr && i == 0)) {
 			res->mr[i] = ibv_reg_mr(res->pd, res->buf[i], BUF_SIZE, mr_flags);
@@ -509,9 +517,14 @@ int post_send(struct resources *res, int opcode, int qpid)
 	int rc;
 	/* prepare the scatter/gather entry */
 	memset(&sge, 0, sizeof(sge));
-	sge.addr = (uintptr_t)res->buf[qpid * config.use_single_mr];
+	if (config.use_single_mr) {
+		sge.addr = (uintptr_t)res->buf[0];
+		sge.lkey = res->mr[0]->lkey;
+	} else {
+		sge.addr = (uintptr_t)res->buf[qpid];
+		sge.lkey = res->mr[qpid]->lkey;
+	}
 	sge.length = BUF_SIZE;
-	sge.lkey = res->mr[qpid * config.use_single_mr]->lkey;
 	/* prepare the send work request */
 	memset(&sr, 0, sizeof(sr));
 	sr.next = NULL;

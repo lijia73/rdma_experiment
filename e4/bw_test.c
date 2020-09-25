@@ -8,7 +8,7 @@ struct config_t config = {
     19875,
     1,
     -1,
-    500,
+    2,
     1
 };
 
@@ -36,11 +36,11 @@ void * thread_run(void *arg) {
     struct timeval cur_time;
     printf("Thread %d created\n", qpid);
     if (config.server_name) {
-        for (int i = 0; i < 1000; i ++) {
+        for (int i = 0; i < 10; i ++) {
             printf("RDMA write\n");
             gettimeofday(&cur_time, NULL);
             st = (cur_time.tv_sec * 1000) + (cur_time.tv_usec / 1000);
-            post_send(res, IBV_WR_RDMA_READ, qpid);
+            post_send(res, IBV_WR_RDMA_WRITE, qpid);
             
             poll_completion(res, qpid);
             if (i == 0) {
