@@ -8,7 +8,7 @@ struct config_t config = {
     19875,
     1,
     -1,
-    100,
+    130,
     0
 };
 
@@ -58,7 +58,7 @@ void * thread_run(void *arg) {
     return retval;
 }
 
-void main() {
+void main(int argc, char **argv) {
     struct resources res;
     char tempChar;
     unsigned long **time_spents;
@@ -68,6 +68,10 @@ void main() {
     unsigned long st_total = 0;
     unsigned long et_total = 0;
     struct timeval cur_time;
+
+    if (argc == 2) {
+        config.num_qp = atoi(argv[1]);
+    }
     
     targs = (struct thread_arg **)malloc(config.num_qp * sizeof(struct thread_arg *));
     time_spents = (unsigned long **)malloc(config.num_qp * sizeof(unsigned long *));
