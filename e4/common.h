@@ -15,7 +15,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-#define BUF_SIZE 256
+#define BUF_SIZE 65536
 
 #define here printf("1\n");
 
