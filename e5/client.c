@@ -14,9 +14,9 @@ void main() {
     resources_init(&res);
     resources_create(&res);
     connect_qp(&res);
-    if (poll_completion(&res)) {
-        return;
-    }
+    // if (poll_completion(&res)) {
+    //     return;
+    // }
     fprintf(stdout, "Message is: %s\n", res.buf);
     sock_sync_data(res.sock, 1, "I", &tempChar);
     if (post_send(&res, IBV_WR_SEND)) {
