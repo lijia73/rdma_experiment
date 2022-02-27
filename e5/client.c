@@ -18,6 +18,7 @@ void main() {
     //     return;
     // }
     fprintf(stdout, "Message is: %s\n", res.buf);
+    strcpy(res.buf, "hello from client side!\n");
     sock_sync_data(res.sock, 1, "I", &tempChar);
     if (post_send(&res, IBV_WR_SEND)) {
         fprintf(stdout, "Failed to post sencond send\n");
