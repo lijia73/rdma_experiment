@@ -11,7 +11,7 @@ struct config_t config = {
 
 void main() {
     struct resources res;
-    char temp_char;
+    char tempChar;
     
     // init resources
     resources_init(&res);
