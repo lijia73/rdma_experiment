@@ -23,6 +23,11 @@ void main() {
         return;
     }
 
+    config.server_name = NULL;
+    resources_init(&res);
+    resources_create(&res);
+    connect_qp(&res);
+
     post_receive(&res);
     sock_sync_data(res.sock, 1, "C", &tempChar);
     if (poll_completion(&res)) {

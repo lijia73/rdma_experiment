@@ -2,7 +2,7 @@
 
 struct config_t config = {
     NULL,
-    "128.110.96.95",
+    NULL,
     19875,
     1,
     0
@@ -22,6 +22,11 @@ void main() {
         return;
     }
     fprintf(stdout, "Message from clientb: %s", res.buf);
+
+    config.server_name = "128.110.96.113";
+    resources_init(&res);
+    resources_create(&res);
+    connect_qp(&res);
 
     strcpy(res.buf, "hello from serverc!\n");
     sock_sync_data(res.sock, 1, "C", &tempChar);

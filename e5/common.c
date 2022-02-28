@@ -189,14 +189,14 @@ int resources_create(struct resources *res)
 		goto resources_create_exit;
 	}
 	memset(res->buf, 0, size);
-	/* only in the server side put the message in the memory buffer */
-	if (!config.server_name)
-	{
-		strcpy(res->buf, "hello from server\n");
-		fprintf(stdout, "going to send the message: '%s'\n", res->buf);
-	}
-	else
-		memset(res->buf, 0, size);
+	// /* only in the server side put the message in the memory buffer */
+	// if (!config.server_name)
+	// {
+	// 	strcpy(res->buf, "hello from server\n");
+	// 	fprintf(stdout, "going to send the message: '%s'\n", res->buf);
+	// }
+	// else
+	// 	memset(res->buf, 0, size);
 	/* register the memory buffer */
 	mr_flags = IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ | IBV_ACCESS_REMOTE_WRITE;
 	res->mr = ibv_reg_mr(res->pd, res->buf, size, mr_flags);
