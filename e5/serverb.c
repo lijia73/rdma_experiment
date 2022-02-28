@@ -11,22 +11,20 @@ struct config_t config = {
 
 void main() {
     struct resources res;
-    int rc = 1;
     char temp_char;
     
     // init resources
     resources_init(&res);
-    rc = resources_create(&res);
-    printf("resource init: %d\n", rc);
+    resources_create(&res);
     connect_qp(&res);
 
     post_receive(&res);
-    sock_sync_data(res.sock, 1, "A", &temp_char);
+    sock_sync_data(res.sock, 1, "A", &tempChar);
     if (poll_completion(&res)) {
         return;
     }
     fprintf(stdout, "Message from clienta: %s", res.buf);
-    
+
     strcpy(res.buf, "hello from serverb!\n");
     sock_sync_data(res.sock, 1, "B", &tempChar);
     post_send(&res, IBV_WR_SEND);

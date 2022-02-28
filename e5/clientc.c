@@ -11,12 +11,13 @@ struct config_t config = {
 void main() {
     struct resources res;
     char tempChar;
+
     resources_init(&res);
     resources_create(&res);
     connect_qp(&res);
     
     post_receive(&res);
-    sock_sync_data(res.sock, 1, "B", &temp_char);
+    sock_sync_data(res.sock, 1, "B", &tempChar);
     if (poll_completion(&res)) {
         return;
     }
