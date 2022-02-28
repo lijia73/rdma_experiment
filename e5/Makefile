@@ -1,17 +1,23 @@
-server: server.o common.o
+serverb: serverb.o common.o
 	cc $^ -libverbs -o $@ -g
 
-client: client.o common.o
+clienta: clienta.o common.o
 	cc $^ -libverbs -o $@ -g
 
-server.o: server.c common.h
-	cc -c server.c
+clientc: clientc.o common.o
+	cc $^ -libverbs -o $@ -g
 
-client.o: client.c common.h
-	cc -c client.c
+serverb.o: serverb.c common.h
+	cc -c serverb.c
+
+clienta.o: clienta.c common.h
+	cc -c clienta.c
+
+clientc.o: clientc.c common.h
+	cc -c clientc.c
 
 common.o: common.c 
 	cc -c common.c
 
 clean:
-	rm common.o client.o client server.o server
+	rm common.o clienta.o clientc.o clienta clientc serverb.o serverb
